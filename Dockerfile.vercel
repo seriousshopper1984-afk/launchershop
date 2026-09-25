@@ -1,0 +1,24 @@
+FROM maven:3.9-eclipse-temurin-17 AS build
+
+WORKDIR /app
+
+COPY pom.xml .
+COPY src ./src
+COPY app ./app
+
+RUN mvn clean package -DskipTests
+
+RUN echo "=== CONTENIDO DE /app/app ===" && ls -lah /app/app
+
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+COPY --from=build /app/target/launch-0.0.1-SNAPSHOT.jar ./launch.jar
+COPY --from=build /app/app/shop-1.0.0.jar ./app/shop-1.0.0.jar
+
+RUN echo "=== CONTENIDO FINAL ===" && ls -lah /app && ls -lah /app/app
+
+EXPOSE 80
+
+CMD ["java", "-jar", "launch.jar"]
